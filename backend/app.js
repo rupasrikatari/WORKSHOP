@@ -19,8 +19,4 @@ const workshopRoutes = require("../backend/routes/admin/workshopRoutes");
 app.use("/api/workshops", workshopRoutes);
 
 
-
-
-
-
 module.exports=app
