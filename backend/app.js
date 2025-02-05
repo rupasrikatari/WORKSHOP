@@ -11,12 +11,12 @@ app.use(express.json());
 connectDB();
 
 
-const workshopRoutes = require("../backend/routes/admin/workshopRoutes");
-
+const workshopRoutes = require("./routes/admin/workshopRoutes");
+const eventRoutes=require("./routes/admin/eventRoutes")
 
 
 // Routes
-app.use("/api/workshops", workshopRoutes);
-
+app.use("/api/v1/workshops", workshopRoutes);
+app.use("/api/v1/events", eventRoutes);
 
 module.exports=app

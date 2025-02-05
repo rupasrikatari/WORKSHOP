@@ -18,6 +18,6 @@ router.put("/:id", updateWorkshop);
 router.delete("/:id", deleteWorkshop);
 
 // Schedule workshop
-router.patch("/:id/schedule", scheduleWorkshop);
+// router.patch("/:id/schedule", scheduleWorkshop);
 
 module.exports = router;
