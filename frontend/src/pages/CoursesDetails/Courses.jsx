@@ -83,6 +83,8 @@ import {
   LoginLink,
 } from "./Courses.styles"
 
+import { getEvents } from "../../services/api"
+
 const Courses = () => {
   const location = useLocation()
   const navigate = useNavigate()
@@ -91,6 +93,8 @@ const Courses = () => {
   // State for storing course data
   const [cardData, setCardData] = useState(null)
   const [courseData, setCourseData] = useState(null)
+
+  
   const [relatedCourses, setRelatedCourses] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -105,6 +109,7 @@ const Courses = () => {
     hours: 7,
     minutes: 24,
   })
+
 
   // Fetch course data
   useEffect(() => {
@@ -148,6 +153,24 @@ const Courses = () => {
 
     fetchCourseData()
   }, [id, location.state])
+
+
+  // const fetchEvents = async () => {
+  //   try {
+  //     console.log("fetching....")
+  //     const data = await getEvents(); // Calls the API function
+  //     console.log(data);
+  //     setEvents(data); // Update state with API response
+  //     console.log(events)
+  //   } catch (error) {
+  //     console.error("Failed to fetch events:", error);
+  //   }
+  // };
+
+  // Fetch data on component mount
+  // useEffect(() => {
+  //   fetchEvents();
+  // }, []);
 
   // Timer useEffect
   useEffect(() => {

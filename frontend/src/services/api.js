@@ -13,6 +13,8 @@ export const getEvents = async () => {
 };
 
 
+
+
 export const registerWorkshop = async (registrationData) => {
     try {
       const response = await axios.post(`${BASE_URL}/workshops/`, registrationData);
