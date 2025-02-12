@@ -1,8 +1,11 @@
-import React, { useEffect, useState } from "react"
+"use client"
+
+import { useEffect, useState } from "react"
 import { useLocation, useNavigate, useParams, Link } from "react-router-dom"
 import { cardsData } from "../../data/data"
 import { courseData as defaultCourseData } from "../../data/CoursesData"
-import { ArrowDown } from "lucide-react"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faArrowDown } from "@fortawesome/free-solid-svg-icons"
 import {
   Container,
   NotificationBar,
@@ -83,7 +86,7 @@ import {
   LoginLink,
 } from "./Courses.styles"
 
-import { getEvents } from "../../services/api"
+import {getEvents} from "../../services/api"
 
 const Courses = () => {
   const location = useLocation()
@@ -94,7 +97,6 @@ const Courses = () => {
   const [cardData, setCardData] = useState(null)
   const [courseData, setCourseData] = useState(null)
 
-  
   const [relatedCourses, setRelatedCourses] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -109,7 +111,6 @@ const Courses = () => {
     hours: 7,
     minutes: 24,
   })
-
 
   // Fetch course data
   useEffect(() => {
@@ -153,7 +154,6 @@ const Courses = () => {
 
     fetchCourseData()
   }, [id, location.state])
-
 
   // const fetchEvents = async () => {
   //   try {
@@ -385,7 +385,7 @@ const Courses = () => {
                     </div>
 
                     <TransitionArrow>
-                      <ArrowDown size={20} />
+                      <FontAwesomeIcon icon={faArrowDown}/>
                     </TransitionArrow>
 
                     <div>

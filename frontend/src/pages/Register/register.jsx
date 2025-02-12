@@ -1,12 +1,18 @@
-import React, { useState } from "react"
+"use client"
+
+import React, { useState, useCallback } from "react"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
-  PhotoIcon,
-  UserIcon,
-  CalendarIcon,
-  MapPinIcon,
-  InformationCircleIcon,
-  CheckIcon,
-} from "@heroicons/react/24/outline"
+  faImage,
+  faUser,
+  faCalendar,
+  faMapMarkerAlt,
+  faInfoCircle,
+  faCheck,
+  faPlus,
+  faTimes,
+} from "@fortawesome/free-solid-svg-icons"
+import { useForm, useFieldArray } from "react-hook-form"
 import {
   Container,
   Form,
@@ -27,111 +33,178 @@ import {
   StepNumber,
   ButtonGroup,
   StepConnector,
+  AddButton,
+  RemoveButton,
+  OptionalText,
 } from "./register.styles"
 
+import { registerWorkshop } from "../../services/api"
+
 const Register = () => {
-  const [formData, setFormData] = useState({
-    topic: "",
-    image: "",
-    description: {
-      about: "",
-      learnings: ["", "", ""],
-      speaker: {
-        title: "",
-        experience: [""],
+  const [isLoading, setIsLoading] = useState(false)
+  const [apiError, setApiError] = useState(null)
+  const [submitSuccess, setSubmitSuccess] = useState(false)
+  const [isSubmitted, setIsSubmitted] = useState(false) // Added state for submission status
+  const [currentStep, setCurrentStep] = useState(1) // Added state for current step
+  const [completedSteps, setCompletedSteps] = useState([]) // Added state for completed steps
+
+  const {
+    register,
+    control,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      topic: "",
+      image: "",
+      about: [""],
+      whatWillYouGain: [""],
+      aboutInstructor: [""],
+      masterClassFor: [""],
+      testimonials: [],
+      startDateTime: "",
+      endDateTime: "",
+      targetingUsers: [],
+      venue: {
+        mode: "online",
+        address: "",
       },
     },
-    speaker: {
-      image: "",
-      name: "",
-      role: "",
-      location: "",
-      flag: "",
-    },
-    eventDetails: {
-      startsOn: "",
-      endsOn: "",
-      venue: "",
-    },
-    schedule: {
-      day: "",
-      date: "",
-      month: "",
-      time: "",
-    },
-    disclaimer: "",
-    registrations: 0,
   })
 
-  const [errors, setErrors] = useState({})
-  const [currentStep, setCurrentStep] = useState(1)
+  const watchAllFields = watch()
 
-  const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }))
-  }
+  const {
+    fields: aboutFields,
+    append: appendAbout,
+    remove: removeAbout,
+  } = useFieldArray({
+    control,
+    name: "about",
+  })
 
-  const handleNestedChange = (e, parent, index = null) => {
-    const { name, value } = e.target
-    setFormData((prevState) => ({
-      ...prevState,
-      [parent]: {
-        ...prevState[parent],
-        [name]:
-          index !== null
-            ? [...prevState[parent][name].slice(0, index), value, ...prevState[parent][name].slice(index + 1)]
-            : value,
-      },
-    }))
-  }
+  const {
+    fields: whatWillYouGainFields,
+    append: appendWhatWillYouGain,
+    remove: removeWhatWillYouGain,
+  } = useFieldArray({
+    control,
+    name: "whatWillYouGain",
+  })
 
-  const validateForm = () => {
-    const newErrors = {}
-    if (!formData.topic) newErrors.topic = "Topic is required"
-    if (!formData.description.about) newErrors.about = "About section is required"
-    if (!formData.speaker.name) newErrors.speakerName = "Speaker name is required"
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+  const {
+    fields: aboutInstructorFields,
+    append: appendAboutInstructor,
+    remove: removeAboutInstructor,
+  } = useFieldArray({
+    control,
+    name: "aboutInstructor",
+  })
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    if (validateForm()) {
-      console.log("Form submitted:", formData)
-      // Here you would typically send the data to your backend
-    }
-  }
+  const {
+    fields: masterClassForFields,
+    append: appendMasterClassFor,
+    remove: removeMasterClassFor,
+  } = useFieldArray({
+    control,
+    name: "masterClassFor",
+  })
 
-  const nextStep = () => {
-    if (validateStepCompletion(currentStep)) {
-      setCurrentStep((prev) => Math.min(prev + 1, 4))
-    }
-  }
+  const {
+    fields: learningFields,
+    append: appendLearning,
+    remove: removeLearning,
+  } = useFieldArray({
+    control,
+    name: "learnings",
+  })
 
-  const prevStep = () => {
-    setCurrentStep((prev) => Math.max(prev - 1, 1))
-  }
+  const {
+    fields: roleFields,
+    append: appendRole,
+    remove: removeRole,
+  } = useFieldArray({
+    control,
+    name: "speaker.roles",
+  })
+
+  const onSubmit = useCallback(
+    async (data) => {
+      setIsLoading(true)
+      setApiError(null)
+
+      try {
+        const workshopData = {
+          topic: data.topic,
+          image: data.image,
+          about: data.about.filter((item) => item.trim() !== ""),
+          whatWillYouGain: data.whatWillYouGain.filter((item) => item.trim() !== ""),
+          aboutInstructor: data.aboutInstructor.filter((item) => item.trim() !== ""),
+          masterClassFor: data.masterClassFor.filter((item) => item.trim() !== ""),
+          testimonials: data.testimonials,
+          startDateTime: data.startDateTime,
+          endDateTime: data.endDateTime,
+          targetingUsers: data.targetingUsers,
+          venue: data.venue,
+        }
+
+        const result = await registerWorkshop(workshopData)
+        setSubmitSuccess(true)
+        setIsSubmitted(true)
+        reset()
+      } catch (error) {
+        console.error("Error registering the workshop:", error)
+        const errorMessage = error.response?.data?.message || error.message || "Failed to register workshop"
+        setApiError(errorMessage)
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [reset],
+  )
 
   const validateStepCompletion = (step) => {
     switch (step) {
       case 1:
-        return formData.topic && formData.image
+        return watchAllFields.topic && watchAllFields.image
       case 2:
-        return formData.description.about && formData.description.learnings.some((learning) => learning)
+        return (
+          watchAllFields.about?.some((item) => item.trim() !== "") &&
+          watchAllFields.whatWillYouGain?.some((item) => item.trim() !== "") &&
+          watchAllFields.aboutInstructor?.some((item) => item.trim() !== "") &&
+          watchAllFields.masterClassFor?.some((item) => item.trim() !== "")
+        )
       case 3:
-        return formData.speaker.name && formData.speaker.role
+        return watchAllFields.speaker.name && watchAllFields.speaker.roles.some((role) => role.title.trim() !== "")
       case 4:
-        return true // Event details are now optional
+        return true
       default:
         return false
     }
   }
 
+  const nextStep = () => {
+    if (validateStepCompletion(currentStep)) {
+      if (!completedSteps.includes(currentStep)) {
+        setCompletedSteps((prev) => [...prev, currentStep])
+      }
+      setCurrentStep((prev) => Math.min(prev + 1, 4))
+      setApiError(null)
+    }
+  }
+
+  const prevStep = () => {
+    setCurrentStep((prev) => Math.max(prev - 1, 1))
+    setApiError(null)
+  }
+
   const isStepCompleted = (step) => {
-    return validateStepCompletion(step)
+    if (step === 4) {
+      return completedSteps.includes(step) && isSubmitted
+    }
+    return completedSteps.includes(step)
   }
 
   const steps = [
@@ -141,33 +214,80 @@ const Register = () => {
     { number: 4, title: "Event Details" },
   ]
 
+  if (submitSuccess) {
+    return (
+      <Container>
+        <Title>Workshop Created Successfully!</Title>
+        <Button
+          onClick={() => {
+            setSubmitSuccess(false)
+            setIsSubmitted(false)
+          }}
+        >
+          Create Another Workshop
+        </Button>
+      </Container>
+    )
+  }
+
+  const FieldArray = ({ fields, name, label, register, append, remove, errors }) => (
+    <>
+      {fields.map((field, index) => (
+        <InputGroup key={field.id}>
+          <Label htmlFor={`${name}-${index}`}>
+            {label} {index + 1}
+          </Label>
+          <InputWrapper>
+            <TextArea
+              id={`${name}-${index}`}
+              {...register(`${name}.${index}`, {
+                required: `${label} is required`,
+                minLength: { value: 10, message: `${label} must be at least 10 characters` },
+              })}
+              placeholder={`Provide ${label.toLowerCase()}...`}
+            />
+            {index > 0 && (
+              <RemoveButton type="button" onClick={() => remove(index)}>
+                <FontAwesomeIcon icon={faTimes} />
+              </RemoveButton>
+            )}
+          </InputWrapper>
+          {errors?.[index] && <ErrorMessage>{errors[index].message}</ErrorMessage>}
+        </InputGroup>
+      ))}
+      <AddButton type="button" onClick={() => append("")}>
+        <FontAwesomeIcon icon={faPlus} /> Add {label}
+      </AddButton>
+    </>
+  )
+
   return (
     <Container>
       <Title>Create a New Workshop</Title>
       <Subtitle>Fill in the details to set up your workshop</Subtitle>
 
-      <ProgressBar currentStep={currentStep}>
+      {apiError && <ErrorMessage style={{ marginBottom: "1rem", textAlign: "center" }}>{apiError}</ErrorMessage>}
+
+      <ProgressBar>
         {steps.map((step, index) => (
           <React.Fragment key={step.number}>
             <ProgressStep
-              active={currentStep === step.number}
-              completed={currentStep > step.number || isStepCompleted(step.number)}
+              active={(currentStep === step.number).toString()}
+              completed={isStepCompleted(step.number).toString()}
             >
-              {currentStep > step.number || isStepCompleted(step.number) ? (
-                <CheckIcon className="w-6 h-6" />
+              {isStepCompleted(step.number) ? (
+                <FontAwesomeIcon icon={faCheck} />
               ) : (
-                <StepNumber>{step.number}</StepNumber>
+                <StepNumber active={(currentStep === step.number).toString()}>{step.number}</StepNumber>
               )}
               <span className="step-title">{step.title}</span>
             </ProgressStep>
-            {index < steps.length - 1 && (
-              <StepConnector completed={currentStep > step.number || isStepCompleted(step.number)} />
-            )}
+            {index < steps.length - 1 && <StepConnector completed={isStepCompleted(step.number).toString()} />}
           </React.Fragment>
         ))}
       </ProgressBar>
 
-      <Form onSubmit={handleSubmit}>
+      <Form onSubmit={handleSubmit(onSubmit)}>
         {currentStep === 1 && (
           <FormSection>
             <FormSectionTitle>Basic Information</FormSectionTitle>
@@ -175,35 +295,32 @@ const Register = () => {
               <Label htmlFor="topic">Workshop Topic</Label>
               <InputWrapper>
                 <Icon>
-                  <InformationCircleIcon className="w-5 h-5" />
+                  <FontAwesomeIcon icon={faInfoCircle} />
                 </Icon>
                 <Input
                   type="text"
                   id="topic"
-                  name="topic"
-                  value={formData.topic}
-                  onChange={handleChange}
+                  {...register("topic", { required: "Topic is required" })}
                   placeholder="e.g., Introduction to Machine Learning"
                 />
               </InputWrapper>
-              {errors.topic && <ErrorMessage>{errors.topic}</ErrorMessage>}
+              {errors.topic && <ErrorMessage>{errors.topic.message}</ErrorMessage>}
             </InputGroup>
 
             <InputGroup>
               <Label htmlFor="image">Workshop Image URL</Label>
               <InputWrapper>
                 <Icon>
-                  <PhotoIcon className="w-5 h-5" />
+                  <FontAwesomeIcon icon={faImage} />
                 </Icon>
                 <Input
                   type="text"
                   id="image"
-                  name="image"
-                  value={formData.image}
-                  onChange={handleChange}
+                  {...register("image", { required: "Image URL is required" })}
                   placeholder="https://example.com/workshop-image.jpg"
                 />
               </InputWrapper>
+              {errors.image && <ErrorMessage>{errors.image.message}</ErrorMessage>}
             </InputGroup>
           </FormSection>
         )}
@@ -211,33 +328,49 @@ const Register = () => {
         {currentStep === 2 && (
           <FormSection>
             <FormSectionTitle>Workshop Description</FormSectionTitle>
-            <InputGroup>
-              <Label htmlFor="about">About the Workshop</Label>
-              <TextArea
-                id="about"
-                name="about"
-                value={formData.description.about}
-                onChange={(e) => handleNestedChange(e, "description")}
-                placeholder="Provide a brief description of your workshop..."
-              />
-              {errors.about && <ErrorMessage>{errors.about}</ErrorMessage>}
-            </InputGroup>
+            {/* About section */}
+            <FieldArray
+              fields={aboutFields}
+              name="about"
+              label="About the Workshop"
+              register={register}
+              append={appendAbout}
+              remove={removeAbout}
+              errors={errors.about}
+            />
 
-            {formData.description.learnings.map((learning, index) => (
-              <InputGroup key={index}>
-                <Label htmlFor={`learning-${index}`}>Key Learning {index + 1}</Label>
-                <Input
-                  type="text"
-                  id={`learning-${index}`}
-                  name="learnings"
-                  value={learning}
-                  onChange={(e) => handleNestedChange(e, "description", index)}
-                  placeholder={`e.g., Understanding ${
-                    index === 0 ? "basic" : index === 1 ? "intermediate" : "advanced"
-                  } concepts`}
-                />
-              </InputGroup>
-            ))}
+            {/* What Will You Gain section */}
+            <FieldArray
+              fields={whatWillYouGainFields}
+              name="whatWillYouGain"
+              label="What Will You Gain"
+              register={register}
+              append={appendWhatWillYouGain}
+              remove={removeWhatWillYouGain}
+              errors={errors.whatWillYouGain}
+            />
+
+            {/* About Instructor section */}
+            <FieldArray
+              fields={aboutInstructorFields}
+              name="aboutInstructor"
+              label="About the Instructor"
+              register={register}
+              append={appendAboutInstructor}
+              remove={removeAboutInstructor}
+              errors={errors.aboutInstructor}
+            />
+
+            {/* Master Class For section */}
+            <FieldArray
+              fields={masterClassForFields}
+              name="masterClassFor"
+              label="Master Class For"
+              register={register}
+              append={appendMasterClassFor}
+              remove={removeMasterClassFor}
+              errors={errors.masterClassFor}
+            />
           </FormSection>
         )}
 
@@ -248,116 +381,140 @@ const Register = () => {
               <Label htmlFor="speakerName">Speaker Name</Label>
               <InputWrapper>
                 <Icon>
-                  <UserIcon className="w-5 h-5" />
+                  <FontAwesomeIcon icon={faUser} />
                 </Icon>
                 <Input
                   type="text"
                   id="speakerName"
-                  name="name"
-                  value={formData.speaker.name}
-                  onChange={(e) => handleNestedChange(e, "speaker")}
+                  {...register("speaker.name", { required: "Speaker name is required" })}
                   placeholder="John Doe"
                 />
               </InputWrapper>
-              {errors.speakerName && <ErrorMessage>{errors.speakerName}</ErrorMessage>}
+              {errors.speaker?.name && <ErrorMessage>{errors.speaker.name.message}</ErrorMessage>}
             </InputGroup>
 
-            <InputGroup>
-              <Label htmlFor="speakerRole">Speaker Role</Label>
-              <InputWrapper>
-                <Icon>
-                  <UserIcon className="w-5 h-5" />
-                </Icon>
-                <Input
-                  type="text"
-                  id="speakerRole"
-                  name="role"
-                  value={formData.speaker.role}
-                  onChange={(e) => handleNestedChange(e, "speaker")}
-                  placeholder="e.g., Senior Data Scientist"
-                />
-              </InputWrapper>
-            </InputGroup>
+            {roleFields.map((field, index) => (
+              <InputGroup key={field.id}>
+                <Label htmlFor={`speakerRole-${index}`}>Speaker Role {index + 1}</Label>
+                <InputWrapper>
+                  <Icon>
+                    <FontAwesomeIcon icon={faUser} />
+                  </Icon>
+                  <Input
+                    type="text"
+                    id={`speakerRole-${index}`}
+                    {...register(`speaker.roles.${index}.title`, { required: "Role is required" })}
+                    placeholder="e.g., Senior Data Scientist"
+                  />
+                  <RemoveButton type="button" onClick={() => removeRole(index)}>
+                    <FontAwesomeIcon icon={faTimes} />
+                  </RemoveButton>
+                </InputWrapper>
+                {errors.speaker?.roles?.[index]?.title && (
+                  <ErrorMessage>{errors.speaker.roles[index].title.message}</ErrorMessage>
+                )}
+              </InputGroup>
+            ))}
+            <AddButton type="button" onClick={() => appendRole({ title: "" })}>
+              <FontAwesomeIcon icon={faPlus} /> Add Role
+            </AddButton>
           </FormSection>
         )}
 
         {currentStep === 4 && (
           <FormSection>
-            <FormSectionTitle>Event Details (Optional)</FormSectionTitle>
+            <FormSectionTitle>
+              Event Details <OptionalText>(Optional)</OptionalText>
+            </FormSectionTitle>
             <InputGroup>
-              <Label htmlFor="startsOn">Start Date</Label>
+              <Label htmlFor="startDateTime"></Label>
               <InputWrapper>
                 <Icon>
-                  <CalendarIcon className="w-5 h-5" />
+                  <FontAwesomeIcon icon={faCalendar} />
                 </Icon>
                 <Input
-                  type="date"
-                  id="startsOn"
-                  name="startsOn"
-                  value={formData.eventDetails.startsOn}
-                  onChange={(e) => handleNestedChange(e, "eventDetails")}
+                  type="datetime-local"
+                  id="startDateTime"
+                  {...register("startDateTime", { required: "" })}
                 />
               </InputWrapper>
+              {errors.startDateTime && <ErrorMessage>{errors.startDateTime.message}</ErrorMessage>}
             </InputGroup>
 
             <InputGroup>
-              <Label htmlFor="endsOn">End Date</Label>
+              <Label htmlFor="endDateTime">End Date and Time</Label>
               <InputWrapper>
                 <Icon>
-                  <CalendarIcon className="w-5 h-5" />
+                  <FontAwesomeIcon icon={faCalendar} />
                 </Icon>
                 <Input
-                  type="date"
-                  id="endsOn"
-                  name="endsOn"
-                  value={formData.eventDetails.endsOn}
-                  onChange={(e) => handleNestedChange(e, "eventDetails")}
+                  type="datetime-local"
+                  id="endDateTime"
+                  {...register("endDateTime", { required: "" })}
                 />
               </InputWrapper>
+              {errors.endDateTime && <ErrorMessage>{errors.endDateTime.message}</ErrorMessage>}
             </InputGroup>
 
             <InputGroup>
-              <Label htmlFor="venue">Venue</Label>
+              <Label htmlFor="targetingUsers">Targeting Users</Label>
+              <InputWrapper>
+                <select
+                  multiple
+                  id="targetingUsers"
+                  {...register("targetingUsers", { required: "" })}
+                >
+                  <option value="College students">College students</option>
+                  <option value="School students">School students</option>
+                  <option value="Professionals">Professionals</option>
+                  <option value="Government exam candidates">Government exam candidates</option>
+                </select>
+              </InputWrapper>
+              {errors.targetingUsers && <ErrorMessage>{errors.targetingUsers.message}</ErrorMessage>}
+            </InputGroup>
+
+            <InputGroup>
+              <Label htmlFor="venueMode">Venue Mode</Label>
+              <InputWrapper>
+                <select id="venueMode" {...register("venue.mode", { required: "Venue mode is required" })}>
+                  <option value="online">Online</option>
+                  <option value="offline">Offline</option>
+                </select>
+              </InputWrapper>
+              {errors.venue?.mode && <ErrorMessage>{errors.venue.mode.message}</ErrorMessage>}
+            </InputGroup>
+
+            <InputGroup>
+              <Label htmlFor="venueAddress">Venue Address</Label>
               <InputWrapper>
                 <Icon>
-                  <MapPinIcon className="w-5 h-5" />
+                  <FontAwesomeIcon icon={faMapMarkerAlt} />
                 </Icon>
                 <Input
                   type="text"
-                  id="venue"
-                  name="venue"
-                  value={formData.eventDetails.venue}
-                  onChange={(e) => handleNestedChange(e, "eventDetails")}
+                  id="venueAddress"
+                  {...register("venue.address")}
                   placeholder="e.g., Tech Conference Center, New York"
                 />
               </InputWrapper>
-            </InputGroup>
-
-            <InputGroup>
-              <Label htmlFor="disclaimer">Disclaimer</Label>
-              <TextArea
-                id="disclaimer"
-                name="disclaimer"
-                value={formData.disclaimer}
-                onChange={handleChange}
-                placeholder="Any additional information or requirements..."
-              />
             </InputGroup>
           </FormSection>
         )}
 
         <ButtonGroup>
           {currentStep > 1 && (
-            <Button type="button" onClick={prevStep} variant="outline">
+            <Button type="button" onClick={prevStep} variant="outline" disabled={isLoading}>
               Previous
             </Button>
           )}
           {currentStep < 4 ? (
-            <Button type="button" onClick={nextStep} disabled={!validateStepCompletion(currentStep)}>
+            <Button type="button" onClick={nextStep} disabled={!validateStepCompletion(currentStep) || isLoading}>
               Next
             </Button>
           ) : (
-            <Button type="submit">Create Workshop</Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Creating Workshop..." : "Create Workshop"}
+            </Button>
           )}
         </ButtonGroup>
       </Form>
