@@ -44,9 +44,9 @@ const Register = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [apiError, setApiError] = useState(null)
   const [submitSuccess, setSubmitSuccess] = useState(false)
-  const [isSubmitted, setIsSubmitted] = useState(false) // Added state for submission status
-  const [currentStep, setCurrentStep] = useState(1) // Added state for current step
-  const [completedSteps, setCompletedSteps] = useState([]) // Added state for completed steps
+  const [isSubmitted, setIsSubmitted] = useState(false)
+  const [currentStep, setCurrentStep] = useState(1)
+  const [completedSteps, setCompletedSteps] = useState([])
 
   const {
     register,
@@ -59,10 +59,10 @@ const Register = () => {
     defaultValues: {
       topic: "",
       image: "",
-      about: [""],
-      whatWillYouGain: [""],
-      aboutInstructor: [""],
-      masterClassFor: [""],
+      about: [{ text: "" }],
+      whatWillYouGain: [{ text: "" }],
+      aboutInstructor: [{ text: "" }],
+      masterClassFor: [{ text: "" }],
       testimonials: [],
       startDateTime: "",
       endDateTime: "",
@@ -74,7 +74,14 @@ const Register = () => {
     },
   })
 
-  const watchAllFields = watch()
+  const {
+    fields: roleFields,
+    append: appendRole,
+    remove: removeRole,
+  } = useFieldArray({
+    control,
+    name: "speaker.roles",
+  })
 
   const {
     fields: aboutFields,
@@ -86,49 +93,33 @@ const Register = () => {
   })
 
   const {
-    fields: whatWillYouGainFields,
-    append: appendWhatWillYouGain,
-    remove: removeWhatWillYouGain,
+    fields: gainFields,
+    append: appendGain,
+    remove: removeGain,
   } = useFieldArray({
     control,
     name: "whatWillYouGain",
   })
 
   const {
-    fields: aboutInstructorFields,
-    append: appendAboutInstructor,
-    remove: removeAboutInstructor,
+    fields: instructorFields,
+    append: appendInstructor,
+    remove: removeInstructor,
   } = useFieldArray({
     control,
     name: "aboutInstructor",
   })
 
   const {
-    fields: masterClassForFields,
-    append: appendMasterClassFor,
-    remove: removeMasterClassFor,
+    fields: classForFields,
+    append: appendClassFor,
+    remove: removeClassFor,
   } = useFieldArray({
     control,
     name: "masterClassFor",
   })
 
-  const {
-    fields: learningFields,
-    append: appendLearning,
-    remove: removeLearning,
-  } = useFieldArray({
-    control,
-    name: "learnings",
-  })
-
-  const {
-    fields: roleFields,
-    append: appendRole,
-    remove: removeRole,
-  } = useFieldArray({
-    control,
-    name: "speaker.roles",
-  })
+  const watchAllFields = watch()
 
   const onSubmit = useCallback(
     async (data) => {
@@ -139,10 +130,10 @@ const Register = () => {
         const workshopData = {
           topic: data.topic,
           image: data.image,
-          about: data.about.filter((item) => item.trim() !== ""),
-          whatWillYouGain: data.whatWillYouGain.filter((item) => item.trim() !== ""),
-          aboutInstructor: data.aboutInstructor.filter((item) => item.trim() !== ""),
-          masterClassFor: data.masterClassFor.filter((item) => item.trim() !== ""),
+          about: data.about.map(item => item.text),
+          whatWillYouGain: data.whatWillYouGain.map(item => item.text),
+          aboutInstructor: data.aboutInstructor.map(item => item.text),
+          masterClassFor: data.masterClassFor.map(item => item.text),
           testimonials: data.testimonials,
           startDateTime: data.startDateTime,
           endDateTime: data.endDateTime,
@@ -171,13 +162,13 @@ const Register = () => {
         return watchAllFields.topic && watchAllFields.image
       case 2:
         return (
-          watchAllFields.about?.some((item) => item.trim() !== "") &&
-          watchAllFields.whatWillYouGain?.some((item) => item.trim() !== "") &&
-          watchAllFields.aboutInstructor?.some((item) => item.trim() !== "") &&
-          watchAllFields.masterClassFor?.some((item) => item.trim() !== "")
+          watchAllFields.about?.some(item => item.text.trim() !== "") &&
+          watchAllFields.whatWillYouGain?.some(item => item.text.trim() !== "") &&
+          watchAllFields.aboutInstructor?.some(item => item.text.trim() !== "") &&
+          watchAllFields.masterClassFor?.some(item => item.text.trim() !== "")
         )
       case 3:
-        return watchAllFields.speaker.name && watchAllFields.speaker.roles.some((role) => role.title.trim() !== "")
+        return watchAllFields.speaker?.name && watchAllFields.speaker?.roles?.some((role) => role.title.trim() !== "")
       case 4:
         return true
       default:
@@ -229,37 +220,6 @@ const Register = () => {
       </Container>
     )
   }
-
-  const FieldArray = ({ fields, name, label, register, append, remove, errors }) => (
-    <>
-      {fields.map((field, index) => (
-        <InputGroup key={field.id}>
-          <Label htmlFor={`${name}-${index}`}>
-            {label} {index + 1}
-          </Label>
-          <InputWrapper>
-            <TextArea
-              id={`${name}-${index}`}
-              {...register(`${name}.${index}`, {
-                required: `${label} is required`,
-                minLength: { value: 10, message: `${label} must be at least 10 characters` },
-              })}
-              placeholder={`Provide ${label.toLowerCase()}...`}
-            />
-            {index > 0 && (
-              <RemoveButton type="button" onClick={() => remove(index)}>
-                <FontAwesomeIcon icon={faTimes} />
-              </RemoveButton>
-            )}
-          </InputWrapper>
-          {errors?.[index] && <ErrorMessage>{errors[index].message}</ErrorMessage>}
-        </InputGroup>
-      ))}
-      <AddButton type="button" onClick={() => append("")}>
-        <FontAwesomeIcon icon={faPlus} /> Add {label}
-      </AddButton>
-    </>
-  )
 
   return (
     <Container>
@@ -328,49 +288,106 @@ const Register = () => {
         {currentStep === 2 && (
           <FormSection>
             <FormSectionTitle>Workshop Description</FormSectionTitle>
-            {/* About section */}
-            <FieldArray
-              fields={aboutFields}
-              name="about"
-              label="About the Workshop"
-              register={register}
-              append={appendAbout}
-              remove={removeAbout}
-              errors={errors.about}
-            />
+            
+            {/* About the Workshop */}
+            <FormSectionTitle>About the Workshop</FormSectionTitle>
+            {aboutFields.map((field, index) => (
+              <InputGroup key={field.id}>
+                <InputWrapper>
+                  <TextArea
+                    {...register(`about.${index}.text`, {
+                      required: "About section is required",
+                      minLength: { value: 10, message: "About must be at least 10 characters" },
+                    })}
+                    placeholder="Provide details about the workshop..."
+                  />
+                  {aboutFields.length > 1 && (
+                    <RemoveButton type="button" onClick={() => removeAbout(index)}>
+                      <FontAwesomeIcon icon={faTimes} />
+                    </RemoveButton>
+                  )}
+                </InputWrapper>
+                {errors.about?.[index]?.text && <ErrorMessage>{errors.about[index].text.message}</ErrorMessage>}
+              </InputGroup>
+            ))}
+            
 
-            {/* What Will You Gain section */}
-            <FieldArray
-              fields={whatWillYouGainFields}
-              name="whatWillYouGain"
-              label="What Will You Gain"
-              register={register}
-              append={appendWhatWillYouGain}
-              remove={removeWhatWillYouGain}
-              errors={errors.whatWillYouGain}
-            />
+            {/* What Will You Gain */}
+            <FormSectionTitle>What Will You Learn</FormSectionTitle>
+            {gainFields.map((field, index) => (
+              <InputGroup key={field.id}>
+                <InputWrapper>
+                  <TextArea
+                    {...register(`whatWillYouGain.${index}.text`, {
+                      required: "Learning outcomes are required",
+                      minLength: { value: 100, message: "Learning outcomes must be at least 10 characters" },
+                    })}
+                    placeholder="Describe what participants will learn..."
+                  />
+                  {gainFields.length > 1 && (
+                    <RemoveButton type="button" onClick={() => removeGain(index)}>
+                      <FontAwesomeIcon icon={faTimes} />
+                    </RemoveButton>
+                  )}
+                </InputWrapper>
+                {errors.whatWillYouGain?.[index]?.text && (
+                  <ErrorMessage>{errors.whatWillYouGain[index].text.message}</ErrorMessage>
+                )}
+              </InputGroup>
+            ))}
+            <AddButton type="button" onClick={() => appendGain({ text: "" })}>
+              <FontAwesomeIcon icon={faPlus} /> Add Learning Outcome
+            </AddButton>
 
-            {/* About Instructor section */}
-            <FieldArray
-              fields={aboutInstructorFields}
-              name="aboutInstructor"
-              label="About the Instructor"
-              register={register}
-              append={appendAboutInstructor}
-              remove={removeAboutInstructor}
-              errors={errors.aboutInstructor}
-            />
+            {/* About the Instructor */}
+            <FormSectionTitle>About the Instructor</FormSectionTitle>
+            {instructorFields.map((field, index) => (
+              <InputGroup key={field.id}>
+                <InputWrapper>
+                  <TextArea
+                    {...register(`aboutInstructor.${index}.text`, {
+                      required: "Instructor information is required",
+                      minLength: { value: 10, message: "Instructor information must be at least 10 characters" },
+                    })}
+                    placeholder="Provide information about the instructor..."
+                  />
+                  {instructorFields.length > 1 && (
+                    <RemoveButton type="button" onClick={() => removeInstructor(index)}>
+                      <FontAwesomeIcon icon={faTimes} />
+                    </RemoveButton>
+                  )}
+                </InputWrapper>
+                {errors.aboutInstructor?.[index]?.text && (
+                  <ErrorMessage>{errors.aboutInstructor[index].text.message}</ErrorMessage>
+                )}
+              </InputGroup>
+            ))}
+            
 
-            {/* Master Class For section */}
-            <FieldArray
-              fields={masterClassForFields}
-              name="masterClassFor"
-              label="Master Class For"
-              register={register}
-              append={appendMasterClassFor}
-              remove={removeMasterClassFor}
-              errors={errors.masterClassFor}
-            />
+            {/* Master Class For */}
+            <FormSectionTitle>Master Class For</FormSectionTitle>
+            {classForFields.map((field, index) => (
+              <InputGroup key={field.id}>
+                <InputWrapper>
+                  <TextArea
+                    {...register(`masterClassFor.${index}.text`, {
+                      required: "Target audience information is required",
+                      minLength: { value: 10, message: "Target audience information must be at least 10 characters" },
+                    })}
+                    placeholder="Describe who this master class is for..."
+                  />
+                  {classForFields.length > 1 && (
+                    <RemoveButton type="button" onClick={() => removeClassFor(index)}>
+                      <FontAwesomeIcon icon={faTimes} />
+                    </RemoveButton>
+                  )}
+                </InputWrapper>
+                {errors.masterClassFor?.[index]?.text && (
+                  <ErrorMessage>{errors.masterClassFor[index].text.message}</ErrorMessage>
+                )}
+              </InputGroup>
+            ))}
+            
           </FormSection>
         )}
 
@@ -427,7 +444,7 @@ const Register = () => {
               Event Details <OptionalText>(Optional)</OptionalText>
             </FormSectionTitle>
             <InputGroup>
-              <Label htmlFor="startDateTime"></Label>
+              <Label htmlFor="startDateTime">Start Date and Time</Label>
               <InputWrapper>
                 <Icon>
                   <FontAwesomeIcon icon={faCalendar} />
@@ -435,7 +452,7 @@ const Register = () => {
                 <Input
                   type="datetime-local"
                   id="startDateTime"
-                  {...register("startDateTime", { required: "" })}
+                  {...register("startDateTime", { required: "Start date and time is required" })}
                 />
               </InputWrapper>
               {errors.startDateTime && <ErrorMessage>{errors.startDateTime.message}</ErrorMessage>}
@@ -450,7 +467,7 @@ const Register = () => {
                 <Input
                   type="datetime-local"
                   id="endDateTime"
-                  {...register("endDateTime", { required: "" })}
+                  {...register("endDateTime", { required: "End date and time is required" })}
                 />
               </InputWrapper>
               {errors.endDateTime && <ErrorMessage>{errors.endDateTime.message}</ErrorMessage>}
@@ -462,7 +479,7 @@ const Register = () => {
                 <select
                   multiple
                   id="targetingUsers"
-                  {...register("targetingUsers", { required: "" })}
+                  {...register("targetingUsers")}
                 >
                   <option value="College students">College students</option>
                   <option value="School students">School students</option>
@@ -523,4 +540,3 @@ const Register = () => {
 }
 
 export default Register
-
