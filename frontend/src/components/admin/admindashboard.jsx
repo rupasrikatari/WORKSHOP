@@ -1,6 +1,10 @@
-// AdminDashboard.jsx
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+"use client"
+
+import { useState, useEffect } from "react"
+import { useNavigate, useLocation } from "react-router-dom"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faEdit, faTrash } from "@fortawesome/free-solid-svg-icons"
+import { cardsData as initialData } from "../../data/data"
 import {
   Container,
   Header,
@@ -17,96 +21,168 @@ import {
   Thead,
   Th,
   Td,
-  StatusBadge,
   LoadingText,
   VenueTag,
   TargetUsersContainer,
-  TargetUserTag
-} from './admin.styles';
+  TargetUserTag,
+  Grid,
+  CardImage,
+  CardInfo,
+  CardActions,
+  WorkshopCard,
+} from "./admin.styles"
 
 const AdminDashboard = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  
+  const navigate = useNavigate()
+  const location = useLocation()
+
   const [stats, setStats] = useState({
     totalWorkshops: 0,
     activeUsers: 0,
     upcomingEvents: 0,
-  });
-  
-  const [workshops, setWorkshops] = useState(() => {
-    // Initialize with data from localStorage if available
-    const savedWorkshops = localStorage.getItem('workshops');
-    return savedWorkshops ? JSON.parse(savedWorkshops) : [];
-  });
-  
-  const [loading, setLoading] = useState(false);
+  })
 
-  // Handle new workshop data from Register component
+  const [workshops, setWorkshops] = useState(() => {
+    const savedWorkshops = localStorage.getItem("workshops")
+    return savedWorkshops ? JSON.parse(savedWorkshops) : initialData
+  })
+
+  const [loading, setLoading] = useState(false)
+  const [viewMode, setViewMode] = useState("card") // 'table' or 'card'
+
   useEffect(() => {
-    if (location.state?.newWorkshop && location.state?.action === 'create') {
+    if (location.state?.newWorkshop && location.state?.action === "create") {
       const newWorkshop = {
         ...location.state.newWorkshop,
         _id: Date.now().toString(),
-        status: 'Upcoming'
-      };
+        status: "Upcoming",
+      }
 
-      const updatedWorkshops = [...workshops, newWorkshop];
-      setWorkshops(updatedWorkshops);
-      
-      // Update localStorage
-      localStorage.setItem('workshops', JSON.stringify(updatedWorkshops));
-      
-      // Update stats
-      setStats(prevStats => ({
-        ...prevStats,
-        totalWorkshops: prevStats.totalWorkshops + 1,
-        upcomingEvents: prevStats.upcomingEvents + 1
-      }));
-
-      // Clear location state
-      window.history.replaceState({}, document.title);
+      const updatedWorkshops = [...workshops, newWorkshop]
+      setWorkshops(updatedWorkshops)
+      localStorage.setItem("workshops", JSON.stringify(updatedWorkshops))
+      updateStats(updatedWorkshops)
+      window.history.replaceState({}, document.title)
     }
-  }, [location.state, workshops]);
+  }, [location.state, workshops])
 
-  // Initialize/update stats whenever workshops change
-  useEffect(() => {
-    const now = new Date();
-    const upcomingCount = workshops.filter(w => new Date(w.startDateTime) > now).length;
-    
+  const updateStats = (workshopsData) => {
+    const now = new Date()
+    const upcomingCount = workshopsData.filter((w) => new Date(w.startDateTime) > now).length
+
     setStats({
-      totalWorkshops: workshops.length,
-      activeUsers: workshops.reduce((acc, workshop) => acc + (workshop.targetingUsers?.length || 0), 0),
-      upcomingEvents: upcomingCount
-    });
-  }, [workshops]);
+      totalWorkshops: workshopsData.length,
+      activeUsers: workshopsData.reduce((acc, workshop) => acc + (workshop.targetingUsers?.length || 0), 0),
+      upcomingEvents: upcomingCount,
+    })
+  }
+
+  useEffect(() => {
+    updateStats(workshops)
+  }, [workshops]) // Removed updateStats from dependencies
 
   const handleCreateWorkshop = () => {
-    navigate('/register');
-  };
+    navigate("/register")
+  }
+
+  const handleEditWorkshop = (id) => {
+    navigate("/register", { state: { workshopId: id, action: "edit" } })
+  }
 
   const handleDeleteWorkshop = (workshopId) => {
-    const updatedWorkshops = workshops.filter(w => w._id !== workshopId);
-    setWorkshops(updatedWorkshops);
-    localStorage.setItem('workshops', JSON.stringify(updatedWorkshops));
-  };
+    const updatedWorkshops = workshops.filter((w) => w._id !== workshopId)
+    setWorkshops(updatedWorkshops)
+    localStorage.setItem("workshops", JSON.stringify(updatedWorkshops))
+  }
 
   const formatDateTime = (dateString) => {
-    return new Date(dateString).toLocaleString('en-US', {
-      dateStyle: 'medium',
-      timeStyle: 'short'
-    });
-  };
+    return new Date(dateString).toLocaleString("en-US", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    })
+  }
+
+  const renderCardView = () => (
+    <Grid>
+      {workshops.map((workshop) => (
+        <WorkshopCard key={workshop.id || workshop._id}>
+          <CardImage src={workshop.image || "/placeholder.svg"} alt={workshop.title} />
+          <CardContent>
+            <CardTitle>{workshop.title}</CardTitle>
+            <CardInfo>Start: {new Date(workshop.startTime || workshop.startDateTime).toLocaleString()}</CardInfo>
+            <CardInfo>End: {new Date(workshop.endTime || workshop.endDateTime).toLocaleString()}</CardInfo>
+            <CardInfo>Registrations: {workshop.registrations || 0}</CardInfo>
+          </CardContent>
+          <CardActions>
+            <Button onClick={() => handleEditWorkshop(workshop.id || workshop._id)} color="#4CAF50">
+              <FontAwesomeIcon icon={faEdit} /> Edit
+            </Button>
+            <Button onClick={() => handleDeleteWorkshop(workshop.id || workshop._id)} color="#F44336">
+              <FontAwesomeIcon icon={faTrash} /> Delete
+            </Button>
+          </CardActions>
+        </WorkshopCard>
+      ))}
+    </Grid>
+  )
+
+  const renderTableView = () => (
+    <Table>
+      <Thead>
+        <tr>
+          <Th>Topic</Th>
+          <Th>Start Time</Th>
+          <Th>End Time</Th>
+          <Th>Venue</Th>
+          <Th>Target Users</Th>
+          <Th>Actions</Th>
+        </tr>
+      </Thead>
+      <tbody>
+        {workshops.map((workshop) => (
+          <tr key={workshop.id || workshop._id}>
+            <Td>{workshop.title || workshop.topic}</Td>
+            <Td>{formatDateTime(workshop.startTime || workshop.startDateTime)}</Td>
+            <Td>{formatDateTime(workshop.endTime || workshop.endDateTime)}</Td>
+            <Td>
+              <VenueTag mode={workshop.venue?.mode || "online"}>
+                {workshop.venue?.mode || "online"}
+                {workshop.venue?.address && ` - ${workshop.venue.address}`}
+              </VenueTag>
+            </Td>
+            <Td>
+              <TargetUsersContainer>
+                {(workshop.targetingUsers || []).map((user, index) => (
+                  <TargetUserTag key={index}>{user}</TargetUserTag>
+                ))}
+              </TargetUsersContainer>
+            </Td>
+            <Td>
+              <ButtonGroup>
+                <Button variant="small" onClick={() => handleEditWorkshop(workshop.id || workshop._id)}>
+                  Edit
+                </Button>
+                <Button variant="small" onClick={() => handleDeleteWorkshop(workshop.id || workshop._id)}>
+                  Delete
+                </Button>
+              </ButtonGroup>
+            </Td>
+          </tr>
+        ))}
+      </tbody>
+    </Table>
+  )
 
   return (
     <Container>
       <Header>
         <Title>Admin Dashboard</Title>
         <ButtonGroup>
-          <Button onClick={handleCreateWorkshop}>
-            Create Workshop
+          <Button onClick={handleCreateWorkshop}>Create Workshop</Button>
+          <Button onClick={() => setViewMode(viewMode === "table" ? "card" : "table")}>
+            {viewMode === "table" ? "Card View" : "Table View"}
           </Button>
-          <Button variant="destructive" onClick={() => navigate('/logout')}>
+          <Button variant="destructive" onClick={() => navigate("/logout")}>
             Logout
           </Button>
         </ButtonGroup>
@@ -148,67 +224,16 @@ const AdminDashboard = () => {
         <CardContent>
           {loading ? (
             <LoadingText>Loading workshops...</LoadingText>
-          ) : workshops.length === 0 ? (
-            <LoadingText>No workshops created yet</LoadingText>
+          ) : viewMode === "table" ? (
+            renderTableView()
           ) : (
-            <Table>
-              <Thead>
-                <tr>
-                  <Th>Topic</Th>
-                  <Th>Start Time</Th>
-                  <Th>End Time</Th>
-                  <Th>Venue</Th>
-                  <Th>Target Users</Th>
-                  <Th>Actions</Th>
-                </tr>
-              </Thead>
-              <tbody>
-                {workshops.map((workshop) => (
-                  <tr key={workshop._id}>
-                    <Td>{workshop.topic}</Td>
-                    <Td>{formatDateTime(workshop.startDateTime)}</Td>
-                    <Td>{formatDateTime(workshop.endDateTime)}</Td>
-                    <Td>
-                      <VenueTag mode={workshop.venue.mode}>
-                        {workshop.venue.mode}
-                        {workshop.venue.address && ` - ${workshop.venue.address}`}
-                      </VenueTag>
-                    </Td>
-                    <Td>
-                      <TargetUsersContainer>
-                        {workshop.targetingUsers.map((user, index) => (
-                          <TargetUserTag key={index}>
-                            {user}
-                          </TargetUserTag>
-                        ))}
-                      </TargetUsersContainer>
-                    </Td>
-                    <Td>
-                      <ButtonGroup>
-                        <Button
-                          variant="small"
-                          onClick={() => navigate(`/workshop/${workshop._id}`)}
-                        >
-                          View
-                        </Button>
-                        <Button
-                          variant="small"
-                          
-                          onClick={() => handleDeleteWorkshop(workshop._id)}
-                        >
-                          Delete
-                        </Button>
-                      </ButtonGroup>
-                    </Td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
+            renderCardView()
           )}
         </CardContent>
       </Card>
     </Container>
-  );
-};
+  )
+}
 
-export default AdminDashboard;
+export default AdminDashboard
+

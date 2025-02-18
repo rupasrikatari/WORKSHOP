@@ -292,3 +292,32 @@ export const TargetUserTag = styled.span`
     background: linear-gradient(135deg, #4b5563, #374151);
   }
 `;
+export const Grid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+`;
+
+export const WorkshopCard = styled.div`
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+`;
+
+export const CardImage = styled.img`
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+`;
+
+export const CardInfo = styled.div`
+  padding: 10px;
+  font-size: 14px;
+`;
+
+export const CardActions = styled.div`
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+`;

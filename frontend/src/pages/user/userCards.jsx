@@ -1,34 +1,49 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
-import { cardsData as initialData } from "../../data/data"; // Renamed to avoid conflict
-import { Grid, Card, CardImage, CardContent, CardTitle, CardInfo, CardActions, Button } from "./user.styles";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { cardsData as initialData } from '../../data/data';
+import {
+  Grid,
+  Card,
+  CardImage,
+  CardContent,
+  CardTitle,
+  CardInfo,
+  CardActions,
+  Button
+} from './user.styles';
 
 const UserCards = () => {
-  const [cards, setCards] = useState(initialData); // Store cards in state
+  const [cards, setCards] = useState(() => {
+    const savedCards = localStorage.getItem('cards');
+    return savedCards ? JSON.parse(savedCards) : initialData;
+  });
+  
   const navigate = useNavigate();
 
   const handleEdit = () => {
-    navigate("/register"); // ✅ Navigates to register.jsx
+    navigate('/register');
   };
 
   const handleDelete = (id) => {
-    setCards(cards.filter((card) => card.id !== id)); // ✅ Removes the card
+    const updatedCards = cards.filter((card) => card.id !== id);
+    setCards(updatedCards);
+    localStorage.setItem('cards', JSON.stringify(updatedCards));
   };
 
   return (
     <Grid>
       {cards.length === 0 ? (
-        <p>No cards available</p> // Display message if all cards are deleted
+        <p>No workshops available</p>
       ) : (
         cards.map((card) => (
           <Card key={card.id}>
-            <CardImage src={card.image || "/placeholder.svg"} alt={card.title} />
+            <CardImage src={card.image || '/placeholder.svg'} alt={card.title} />
             <CardContent>
               <CardTitle>{card.title}</CardTitle>
-              <CardInfo>Start: {card.startTime}</CardInfo>
-              <CardInfo>End: {card.endTime}</CardInfo>
+              <CardInfo>Start: {new Date(card.startTime).toLocaleString()}</CardInfo>
+              <CardInfo>End: {new Date(card.endTime).toLocaleString()}</CardInfo>
               <CardInfo>Registrations: {card.registrations}</CardInfo>
             </CardContent>
             <CardActions>
