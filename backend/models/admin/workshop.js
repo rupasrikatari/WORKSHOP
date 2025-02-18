@@ -4,7 +4,6 @@ const WorkshopSchema = new mongoose.Schema({
   topic: { type: String, required: true, trim: true },
   image: { type: String, required: true },
   about: { type: [String], required: true },
-  whatWillYouGain: { type: [String], required: true },
   aboutInstructor: { type: [String], required: true },
   masterClassFor: { type: [String], required: true },
   testimonials: [

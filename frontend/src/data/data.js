@@ -79,77 +79,7 @@ export const cardsData = [
       registrations: 2576,
       link: "/job/ecommerce-data-science",
     },
-    {
-      id: 9,
-      title: "Embeddings and RAG",
-      image:
-        "https://d2beiqkhq929f0.cloudfront.net/public_assets/assets/000/102/801/original/M529_LP.webp?1736434824",
-      startTime: "November 19, 2024 7:30 PM (IST)",
-      endTime: "November 19, 2024 10:30 PM (IST)",
-      registrations: 4700,
-      link: "/job/embeddings-and-rag",
-    },
-    {
-      id: 10,
-      title: "Master Java Concurrency & Multithreading",
-      image:
-        "https://d2beiqkhq929f0.cloudfront.net/public_assets/assets/000/095/653/original/LP_%288%29.webp?1730809518",
-      startTime: "November 16, 2024 5:00 PM (IST)",
-      endTime: "November 16, 2024 8:00 PM (IST)",
-      registrations: 3225,
-      link: "/job/java-concurrency-multithreading",
-    },
-    {
-      id: 11,
-      title: "Learn How To Design Seamless Notification Services",
-      image:
-        "https://d2beiqkhq929f0.cloudfront.net/public_assets/assets/000/095/267/original/LP_%284%29.webp?1730289729",
-      startTime: "November 14, 2024 7:30 PM (IST)",
-      endTime: "November 14, 2024 10:30 PM (IST)",
-      registrations: 4866,
-      link: "/job/notification-services",
-    },
-    {
-      id: 12,
-      title: "Fundamentals of Docker & Kubernetes",
-      image:
-        "https://d2beiqkhq929f0.cloudfront.net/public_assets/assets/000/095/263/original/LP_%285%29.webp?1730287864",
-      startTime: "February 4, 2025 7:30 PM (IST)",
-      endTime: "February 4, 2025 10:30 PM (IST)",
-      registrations: 53,
-      link: "/job/docker-kubernetes",
-    },
-    {
-      id: 13,
-      title: "Learn CSS flexboxes in 15 mins",
-      image: "https://i.imgur.com/1GeEDha.png",
-      startTime: "November 2, 2024 12:00 PM (IST)",
-      endTime: "April 2, 2025 12:00 PM (IST)",
-      duration: "15 mins",
-      registrations: 9869,
-      link: "/job/css-flexboxes",
-    },
-    {
-      id: 14,
-      title: "Machine Learning Basics in under 20 mins",
-      image:
-        "https://d2beiqkhq929f0.cloudfront.net/public_assets/assets/000/026/694/original/Nhf8Op2.webp?1677390791",
-      startTime: "November 2, 2024 12:00 PM (IST)",
-      endTime: "April 2, 2025 12:00 PM (IST)",
-      duration: "20 mins",
-      registrations: 13042,
-      link: "/job/machine-learning-basics",
-    },
-    {
-      id: 15,
-      title: "Learn PCA under 20 Minutes",
-      image:
-        "https://d2beiqkhq929f0.cloudfront.net/public_assets/assets/000/026/712/original/66.webp?1677394745",
-      startTime: "November 2, 2024 12:00 PM (IST)",
-      endTime: "May 2, 2025 12:00 PM (IST)",
-      duration: "20 minutes",
-      registrations: 4742,
-      link: "/job/pca-basics",
-    },
+    
+    
   ];
   
