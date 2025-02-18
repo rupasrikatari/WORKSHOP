@@ -14,12 +14,10 @@ app.use(cors());
 connectDB();
 
 
-const workshopRoutes = require("./routes/admin/workshopRoutes");
-const eventRoutes=require("./routes/admin/eventRoutes")
+const eventRoutes=require("./routes/eventRoutes")
 
 
 // Routes
-app.use("/api/v1/workshops", workshopRoutes);
 app.use("/api/v1/events", eventRoutes);
 
 module.exports=app

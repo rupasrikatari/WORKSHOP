@@ -197,7 +197,7 @@ const AdminDashboard = () => {
             <StatValue>{stats.totalWorkshops}</StatValue>
           </CardContent>
         </Card>
-
+``
         <Card>
           <CardHeader>
             <CardTitle>Active Users</CardTitle>
