@@ -1,5 +1,4 @@
 "use client"
-
 import React, { useState, useCallback } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
@@ -71,6 +70,15 @@ const Register = () => {
         mode: "online",
         address: "",
       },
+      speaker: {
+        name: "",
+        roles: [
+          {
+            title: "",
+            description: ""
+          }
+        ]
+      }
     },
   })
 
@@ -139,6 +147,10 @@ const Register = () => {
           endTime: data.endTime,
           targetingUsers: data.targetingUsers,
           venue: data.venue,
+          speaker: {
+            name: data.speaker.name,
+            roles: data.speaker.roles
+          }
         }
 
         const result = await registerWorkshop(workshopData)
@@ -168,7 +180,10 @@ const Register = () => {
           watchAllFields.masterClassFor?.some(item => item.text.trim() !== "")
         )
       case 3:
-        return watchAllFields.speaker?.name && watchAllFields.speaker?.roles?.some((role) => role.title.trim() !== "")
+        return (
+          watchAllFields.speaker?.name && 
+          watchAllFields.speaker?.roles?.some((role) => role.title.trim() !== "")
+        )
       case 4:
         return true
       default:
@@ -289,7 +304,6 @@ const Register = () => {
           <FormSection>
             <FormSectionTitle>Workshop Description</FormSectionTitle>
             
-            {/* About the Workshop */}
             <FormSectionTitle>About the Workshop</FormSectionTitle>
             {aboutFields.map((field, index) => (
               <InputGroup key={field.id}>
@@ -312,7 +326,6 @@ const Register = () => {
             ))}
             
 
-            {/* What Will You Gain */}
             <FormSectionTitle>What Will You Learn</FormSectionTitle>
             {gainFields.map((field, index) => (
               <InputGroup key={field.id}>
@@ -320,7 +333,7 @@ const Register = () => {
                   <TextArea
                     {...register(`whatWillYouGain.${index}.text`, {
                       required: "Learning outcomes are required",
-                      minLength: { value: 100, message: "Learning outcomes must be at least 10 characters" },
+                      minLength: { value: 10, message: "Learning outcomes must be at least 10 characters" },
                     })}
                     placeholder="Describe what participants will learn..."
                   />
@@ -339,7 +352,6 @@ const Register = () => {
               <FontAwesomeIcon icon={faPlus} /> Add Learning Outcome
             </AddButton>
 
-            {/* About the Instructor */}
             <FormSectionTitle>About the Instructor</FormSectionTitle>
             {instructorFields.map((field, index) => (
               <InputGroup key={field.id}>
@@ -364,7 +376,6 @@ const Register = () => {
             ))}
             
 
-            {/* Master Class For */}
             <FormSectionTitle>Master Class For</FormSectionTitle>
             {classForFields.map((field, index) => (
               <InputGroup key={field.id}>
@@ -411,28 +422,48 @@ const Register = () => {
             </InputGroup>
 
             {roleFields.map((field, index) => (
-              <InputGroup key={field.id}>
-                <Label htmlFor={`speakerRole-${index}`}>Speaker Role {index + 1}</Label>
-                <InputWrapper>
-                  <Icon>
-                    <FontAwesomeIcon icon={faUser} />
-                  </Icon>
-                  <Input
-                    type="text"
-                    id={`speakerRole-${index}`}
-                    {...register(`speaker.roles.${index}.title`, { required: "Role is required" })}
-                    placeholder="e.g., Senior Data Scientist"
-                  />
-                  <RemoveButton type="button" onClick={() => removeRole(index)}>
-                    <FontAwesomeIcon icon={faTimes} />
-                  </RemoveButton>
-                </InputWrapper>
-                {errors.speaker?.roles?.[index]?.title && (
-                  <ErrorMessage>{errors.speaker.roles[index].title.message}</ErrorMessage>
-                )}
-              </InputGroup>
+              <div key={field.id}>
+                <InputGroup>
+                  <Label htmlFor={`speakerRole-${index}`}>Speaker Role {index + 1}</Label>
+                  <InputWrapper>
+                    <Icon>
+                      <FontAwesomeIcon icon={faUser} />
+                    </Icon>
+                    <Input
+                      type="text"
+                      id={`speakerRole-${index}`}
+                      {...register(`speaker.roles.${index}.title`, { 
+                        required: "Role title is required" 
+                      })}
+                      placeholder="e.g., Senior Data Scientist"
+                    />
+                    {roleFields.length > 1 && (
+                      <RemoveButton type="button" onClick={() => removeRole(index)}>
+                        <FontAwesomeIcon icon={faTimes} />
+                      </RemoveButton>
+                    )}
+                  </InputWrapper>
+                  {errors.speaker?.roles?.[index]?.title && (
+                    <ErrorMessage>{errors.speaker.roles[index].title.message}</ErrorMessage>
+                  )}
+                </InputGroup>
+
+                <InputGroup>
+                  
+                  <InputWrapper>
+                    
+                  </InputWrapper>
+                  {errors.speaker?.roles?.[index]?.description && (
+                    <ErrorMessage>{errors.speaker.roles[index].description.message}</ErrorMessage>
+                  )}
+                </InputGroup>
+              </div>
             ))}
-            <AddButton type="button" onClick={() => appendRole({ title: "" })}>
+
+            <AddButton 
+              type="button" 
+              onClick={() => appendRole({ title: "", description: "" })}
+            >
               <FontAwesomeIcon icon={faPlus} /> Add Role
             </AddButton>
           </FormSection>
