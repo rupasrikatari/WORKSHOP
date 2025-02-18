@@ -24,6 +24,9 @@ import {
   TargetUserTag
 } from './admin.styles';
 
+
+import {getTotalEvents} from "../../services/api"
+
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -41,6 +44,25 @@ const AdminDashboard = () => {
   });
   
   const [loading, setLoading] = useState(false);
+
+
+  // Fetch total workshops dynamically
+  useEffect(() => {
+    const fetchTotalWorkshops = async () => {
+      try {
+        const { total } = await getTotalEvents();
+        setStats((prevStats) => ({
+          ...prevStats,
+          totalWorkshops: total
+        }));
+      } catch (error) {
+        console.error("Error fetching total workshops:", error);
+      }
+    };
+
+    fetchTotalWorkshops();
+  }, []);
+
 
   // Handle new workshop data from Register component
   useEffect(() => {
@@ -70,16 +92,16 @@ const AdminDashboard = () => {
   }, [location.state, workshops]);
 
   // Initialize/update stats whenever workshops change
-  useEffect(() => {
-    const now = new Date();
-    const upcomingCount = workshops.filter(w => new Date(w.startDateTime) > now).length;
+  // useEffect(() => {
+  //   const now = new Date();
+  //   const upcomingCount = workshops.filter(w => new Date(w.startDateTime) > now).length;
     
-    setStats({
-      totalWorkshops: workshops.length,
-      activeUsers: workshops.reduce((acc, workshop) => acc + (workshop.targetingUsers?.length || 0), 0),
-      upcomingEvents: upcomingCount
-    });
-  }, [workshops]);
+  //   setStats({
+  //     totalWorkshops: workshops.length,
+  //     activeUsers: workshops.reduce((acc, workshop) => acc + (workshop.targetingUsers?.length || 0), 0),
+  //     upcomingEvents: upcomingCount
+  //   });
+  // }, [workshops]);
 
   const handleCreateWorkshop = () => {
     navigate('/register');
@@ -121,7 +143,7 @@ const AdminDashboard = () => {
             <StatValue>{stats.totalWorkshops}</StatValue>
           </CardContent>
         </Card>
-
+``
         <Card>
           <CardHeader>
             <CardTitle>Active Users</CardTitle>

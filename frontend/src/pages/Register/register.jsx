@@ -57,15 +57,15 @@ const Register = () => {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      topic: "",
+      title: "",
       image: "",
       about: [{ text: "" }],
       whatWillYouGain: [{ text: "" }],
       aboutInstructor: [{ text: "" }],
       masterClassFor: [{ text: "" }],
       testimonials: [],
-      startDateTime: "",
-      endDateTime: "",
+      startTime: "",
+      endTime: "",
       targetingUsers: [],
       venue: {
         mode: "online",
@@ -128,15 +128,15 @@ const Register = () => {
 
       try {
         const workshopData = {
-          topic: data.topic,
+          title: data.title,
           image: data.image,
           about: data.about.map(item => item.text),
           whatWillYouGain: data.whatWillYouGain.map(item => item.text),
           aboutInstructor: data.aboutInstructor.map(item => item.text),
           masterClassFor: data.masterClassFor.map(item => item.text),
           testimonials: data.testimonials,
-          startDateTime: data.startDateTime,
-          endDateTime: data.endDateTime,
+          startTime: data.startTime,
+          endTime: data.endTime,
           targetingUsers: data.targetingUsers,
           venue: data.venue,
         }
@@ -159,7 +159,7 @@ const Register = () => {
   const validateStepCompletion = (step) => {
     switch (step) {
       case 1:
-        return watchAllFields.topic && watchAllFields.image
+        return watchAllFields.title && watchAllFields.image
       case 2:
         return (
           watchAllFields.about?.some(item => item.text.trim() !== "") &&
@@ -252,19 +252,19 @@ const Register = () => {
           <FormSection>
             <FormSectionTitle>Basic Information</FormSectionTitle>
             <InputGroup>
-              <Label htmlFor="topic">Workshop Topic</Label>
+              <Label htmlFor="title">Workshop title</Label>
               <InputWrapper>
                 <Icon>
                   <FontAwesomeIcon icon={faInfoCircle} />
                 </Icon>
                 <Input
                   type="text"
-                  id="topic"
-                  {...register("topic", { required: "Topic is required" })}
+                  id="title"
+                  {...register("title", { required: "title is required" })}
                   placeholder="e.g., Introduction to Machine Learning"
                 />
               </InputWrapper>
-              {errors.topic && <ErrorMessage>{errors.topic.message}</ErrorMessage>}
+              {errors.title && <ErrorMessage>{errors.title.message}</ErrorMessage>}
             </InputGroup>
 
             <InputGroup>
@@ -444,33 +444,33 @@ const Register = () => {
               Event Details <OptionalText>(Optional)</OptionalText>
             </FormSectionTitle>
             <InputGroup>
-              <Label htmlFor="startDateTime">Start Date and Time</Label>
+              <Label htmlFor="startTime">Start Date and Time</Label>
               <InputWrapper>
                 <Icon>
                   <FontAwesomeIcon icon={faCalendar} />
                 </Icon>
                 <Input
                   type="datetime-local"
-                  id="startDateTime"
-                  {...register("startDateTime", { required: "Start date and time is required" })}
+                  id="startTime"
+                  {...register("startTime", { required: "Start date and time is required" })}
                 />
               </InputWrapper>
-              {errors.startDateTime && <ErrorMessage>{errors.startDateTime.message}</ErrorMessage>}
+              {errors.startTime && <ErrorMessage>{errors.startTime.message}</ErrorMessage>}
             </InputGroup>
 
             <InputGroup>
-              <Label htmlFor="endDateTime">End Date and Time</Label>
+              <Label htmlFor="endTime">End Date and Time</Label>
               <InputWrapper>
                 <Icon>
                   <FontAwesomeIcon icon={faCalendar} />
                 </Icon>
                 <Input
                   type="datetime-local"
-                  id="endDateTime"
-                  {...register("endDateTime", { required: "End date and time is required" })}
+                  id="endTime"
+                  {...register("endTime", { required: "End date and time is required" })}
                 />
               </InputWrapper>
-              {errors.endDateTime && <ErrorMessage>{errors.endDateTime.message}</ErrorMessage>}
+              {errors.endTime && <ErrorMessage>{errors.endTime.message}</ErrorMessage>}
             </InputGroup>
 
             <InputGroup>

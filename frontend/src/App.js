@@ -8,7 +8,7 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/cards" element={<Cards />} />
+        <Route path="/" element={<Cards />} />
         <Route path="/courses/:id" element={<Courses />} />
         <Route path="/register" element={<Register />} />
         <Route path="/admin" element={<AdminDashboard />} /> {/* New route for AdminDashboard */}
