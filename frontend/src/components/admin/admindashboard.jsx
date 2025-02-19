@@ -5,6 +5,8 @@ import { useNavigate, useLocation } from "react-router-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEdit, faTrash } from "@fortawesome/free-solid-svg-icons"
 import { cardsData as initialData } from "../../data/data"
+import EditWorkshopModal from "../EditWorkshopModal/EditWorkshopModal"
+
 import {
   Container,
   Header,
@@ -30,11 +32,20 @@ import {
   CardInfo,
   CardActions,
   WorkshopCard,
+  ModalOverlay,
+  ModalContent,
+  Modal,ModalHeader,ModalBody,Label,Input,ModalFooter
 } from "./admin.styles"
+import { deleteEvent, getEvents, getTotalEvents } from "../../services/api"
+
+
 
 const AdminDashboard = () => {
   const navigate = useNavigate()
   const location = useLocation()
+  const [showModal, setShowModal] = useState(false);
+  const [showEditModal, setEditModal]=useState(false);
+  const [selectedWorkshopId, setSelectedWorkshopId] = useState(null);
 
   const [stats, setStats] = useState({
     totalWorkshops: 0,
@@ -42,58 +53,132 @@ const AdminDashboard = () => {
     upcomingEvents: 0,
   })
 
-  const [workshops, setWorkshops] = useState(() => {
-    const savedWorkshops = localStorage.getItem("workshops")
-    return savedWorkshops ? JSON.parse(savedWorkshops) : initialData
-  })
-
   const [loading, setLoading] = useState(false)
   const [viewMode, setViewMode] = useState("card") // 'table' or 'card'
 
-  useEffect(() => {
-    if (location.state?.newWorkshop && location.state?.action === "create") {
-      const newWorkshop = {
-        ...location.state.newWorkshop,
-        _id: Date.now().toString(),
-        status: "Upcoming",
-      }
 
-      const updatedWorkshops = [...workshops, newWorkshop]
-      setWorkshops(updatedWorkshops)
-      localStorage.setItem("workshops", JSON.stringify(updatedWorkshops))
-      updateStats(updatedWorkshops)
-      window.history.replaceState({}, document.title)
+  const [workshops, setWorkshops] = useState([]);
+
+  // Fetch workshops using the API function
+  const fetchworkshops = async () => {
+    try {
+      console.log("fetching....")
+      const data = await getEvents(); 
+      // console.log(data)
+      setWorkshops(data); 
+    } catch (error) {
+      console.error("Failed to fetch workshops:", error);
     }
-  }, [location.state, workshops])
+  };
 
-  const updateStats = (workshopsData) => {
-    const now = new Date()
-    const upcomingCount = workshopsData.filter((w) => new Date(w.startDateTime) > now).length
+  // Fetch data on component mount
+  useEffect(() => {
+    fetchworkshops();
+  }, []);
 
-    setStats({
-      totalWorkshops: workshopsData.length,
-      activeUsers: workshopsData.reduce((acc, workshop) => acc + (workshop.targetingUsers?.length || 0), 0),
-      upcomingEvents: upcomingCount,
-    })
-  }
 
   useEffect(() => {
-    updateStats(workshops)
-  }, [workshops]) // Removed updateStats from dependencies
+    const fetchTotalEvents = async () => {
+      try {
+        console.log("Fetching total workshops...");
+        const data = await getTotalEvents();
+        console.log("Total workshops:", data.total);
+        
+        setStats((prevStats) => ({
+          ...prevStats,
+          totalWorkshops: data.total, // Update only totalWorkshops
+        }));
+      } catch (error) {
+        console.error("Error fetching total workshops:", error);
+      }
+    };
+
+    fetchTotalEvents();
+  }, []);
+
+
 
   const handleCreateWorkshop = () => {
     navigate("/register")
   }
 
   const handleEditWorkshop = (id) => {
-    navigate("/register", { state: { workshopId: id, action: "edit" } })
+    console.log("Clicked...")
+    setEditModal(true);
+
+    // navigate("/register", { state: { workshopId: id, action: "edit" } })
   }
 
+
+
+
   const handleDeleteWorkshop = (workshopId) => {
-    const updatedWorkshops = workshops.filter((w) => w._id !== workshopId)
-    setWorkshops(updatedWorkshops)
-    localStorage.setItem("workshops", JSON.stringify(updatedWorkshops))
-  }
+    console.log("clicked...")
+    setSelectedWorkshopId(workshopId);
+    setShowModal(true); // Show modal before deleting
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!selectedWorkshopId) return;
+    try {
+      await deleteEvent(selectedWorkshopId); // Call the API to delete from the backend
+      // setWorkshops((prevWorkshops) =>
+      //   prevWorkshops.filter((w) => w._id !== selectedWorkshopId)
+      // );
+      console.log("Workshop deleted successfully");
+    } catch (error) {
+      console.error("Error deleting workshop:", error);
+    }
+    setShowModal(false);
+  };
+
+  const renderModal = () =>
+    showModal && (
+      <ModalOverlay>
+        <ModalContent>
+          <h3>Are you sure you want to delete this workshop?</h3>
+          <ButtonGroup>
+            <Button onClick={handleConfirmDelete} color="#F44336">
+              Yes, Delete
+            </Button>
+            <Button onClick={() => setShowModal(false)}>Cancel</Button>
+          </ButtonGroup>
+        </ModalContent>
+      </ModalOverlay>
+    );
+
+
+
+
+    
+  const renderEditModal = () =>
+    showEditModal && (
+      <Modal>
+            <ModalHeader>Edit Workshop</ModalHeader>
+            <ModalBody>
+              <Label>Title</Label>
+              <Input name="title"   />
+      
+              <Label>Start Time</Label>
+              <Input type="datetime-local" name="startTime"   />
+      
+              <Label>End Time</Label>
+              <Input type="datetime-local" name="endTime" />
+      
+              <Label>Venue</Label>
+              <Input name="venue"  />
+      
+              <Label>Registrations</Label>
+              <Input type="number" name="registrations"   />
+            </ModalBody>
+            <ModalFooter>
+              <Button >Save Changes</Button>
+              <Button variant="destructive" >Cancel</Button>
+            </ModalFooter>
+          </Modal>
+    );
+
+
 
   const formatDateTime = (dateString) => {
     return new Date(dateString).toLocaleString("en-US", {
@@ -101,6 +186,11 @@ const AdminDashboard = () => {
       timeStyle: "short",
     })
   }
+
+
+
+  
+
 
   const renderCardView = () => (
     <Grid>
@@ -117,7 +207,7 @@ const AdminDashboard = () => {
             <Button onClick={() => handleEditWorkshop(workshop.id || workshop._id)} color="#4CAF50">
               <FontAwesomeIcon icon={faEdit} /> Edit
             </Button>
-            <Button onClick={() => handleDeleteWorkshop(workshop.id || workshop._id)} color="#F44336">
+            <Button onClick={() => handleDeleteWorkshop(workshop._id)} color="#F44336">
               <FontAwesomeIcon icon={faTrash} /> Delete
             </Button>
           </CardActions>
@@ -197,7 +287,6 @@ const AdminDashboard = () => {
             <StatValue>{stats.totalWorkshops}</StatValue>
           </CardContent>
         </Card>
-``
         <Card>
           <CardHeader>
             <CardTitle>Active Users</CardTitle>
@@ -231,6 +320,8 @@ const AdminDashboard = () => {
           )}
         </CardContent>
       </Card>
+      {renderModal()}
+      {/* {renderEditModal()} */}
     </Container>
   )
 }

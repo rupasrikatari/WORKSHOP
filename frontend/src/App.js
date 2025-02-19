@@ -10,7 +10,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Cards />} />
-        <Route path="/user" element={<UserCards />} /> {/* ✅ Fixed Component Name */}
+        <Route path="/user" element={<UserCards />} /> 
         <Route path="/courses/:id" element={<Courses />} />
         <Route path="/register" element={<Register />} />
         <Route path="/admin" element={<AdminDashboard />} />
