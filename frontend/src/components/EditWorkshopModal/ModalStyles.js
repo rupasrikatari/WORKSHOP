@@ -27,8 +27,10 @@ export const ModalHeader = styled.div`
 export const ModalBody = styled.div`
   padding: 20px;
   display: flex;
+  background-color:orange;
   flex-direction: column;
-  gap: 10px;
+  justify-content:center;
+gap: 10px;
 `;
 
 export const ModalFooter = styled.div`
@@ -61,102 +63,25 @@ export const ModalContent = styled.div`
   }
 `;
 
-export const Button = styled.button`
-  padding: clamp(0.4rem, 1vw, 0.75rem) clamp(0.8rem, 2vw, 1.25rem);
-  border-radius: 0.5rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: none;
-  font-size: clamp(0.875rem, 1vw, 1rem);
-  position: relative;
-  overflow: hidden;
 
-  &:before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    transition: width 0.4s ease, height 0.4s ease;
-  }
-
-  &:hover:before {
-    width: 300%;
-    height: 300%;
-  }
-
-  ${props => {
-    switch(props.variant) {
-      case 'outline':
-        return `
-          background: transparent;
-          border: 2px solid #6366f1;
-          color: #4f46e5;
-          &:hover {
-            background: rgba(99, 102, 241, 0.1);
-          }
-        `;
-      case 'destructive':
-        return `
-          background: linear-gradient(135deg, #dc2626, #ef4444);
-          color: white;
-          &:hover {
-            background: linear-gradient(135deg, #b91c1c, #dc2626);
-          }
-        `;
-      case 'small':
-        return `
-          padding: 0.25rem 0.75rem;
-          font-size: clamp(0.75rem, 0.9vw, 0.875rem);
-        `;
-      default:
-        return `
-          background: linear-gradient(135deg, #16a34a, #22c55e);
-          color: white;
-          &:hover {
-            background: linear-gradient(135deg, #15803d, #16a34a);
-          }
-        `;
-    }
-  }}
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
+export const Container = styled.div`
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2.5rem;
+  background: #f7f8fa; /* Light background color */
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  height:90%;
 `;
 
+export const Form = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  height:100%;
+\  max-height: 300px; /* Adjust this height as needed */
+  overflow-y: auto;
+  padding: 1rem; /* Optional: Adds some spacing */
 
-// Styled input field
-export const Input = styled.input`
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  font-size: 1rem;
-  outline: none;
-  transition: border-color 0.2s;
-
-  &:focus {
-    border-color: #4CAF50;
-  }
 `;
-
-// Styled label
-export const Label = styled.label`
-  font-size: 1rem;
-  font-weight: bold;
-  margin-bottom: 5px;
-  display: block;
-`;
-
-

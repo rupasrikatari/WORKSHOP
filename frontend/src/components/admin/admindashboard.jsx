@@ -33,8 +33,7 @@ import {
   CardActions,
   WorkshopCard,
   ModalOverlay,
-  ModalContent,
-  Modal,ModalHeader,ModalBody,Label,Input,ModalFooter
+  ModalContent
 } from "./admin.styles"
 import { deleteEvent, getEvents, getTotalEvents } from "../../services/api"
 
@@ -103,11 +102,12 @@ const AdminDashboard = () => {
   }
 
   const handleEditWorkshop = (id) => {
-    console.log("Clicked...")
+   
+    
+    setSelectedWorkshopId(id);
     setEditModal(true);
+  };
 
-    // navigate("/register", { state: { workshopId: id, action: "edit" } })
-  }
 
 
 
@@ -146,38 +146,9 @@ const AdminDashboard = () => {
         </ModalContent>
       </ModalOverlay>
     );
+   
 
-
-
-
-    
-  const renderEditModal = () =>
-    showEditModal && (
-      <Modal>
-            <ModalHeader>Edit Workshop</ModalHeader>
-            <ModalBody>
-              <Label>Title</Label>
-              <Input name="title"   />
-      
-              <Label>Start Time</Label>
-              <Input type="datetime-local" name="startTime"   />
-      
-              <Label>End Time</Label>
-              <Input type="datetime-local" name="endTime" />
-      
-              <Label>Venue</Label>
-              <Input name="venue"  />
-      
-              <Label>Registrations</Label>
-              <Input type="number" name="registrations"   />
-            </ModalBody>
-            <ModalFooter>
-              <Button >Save Changes</Button>
-              <Button variant="destructive" >Cancel</Button>
-            </ModalFooter>
-          </Modal>
-    );
-
+     
 
 
   const formatDateTime = (dateString) => {
@@ -321,7 +292,22 @@ const AdminDashboard = () => {
         </CardContent>
       </Card>
       {renderModal()}
-      {/* {renderEditModal()} */}
+      { showEditModal && (
+        <EditWorkshopModal
+          isOpen={showEditModal}
+          onClose={() => setEditModal(false)}
+          workshopId={selectedWorkshopId} // Only passing ID
+          onUpdate={(selectedWorkshopId, updatedData) => {
+            setWorkshops((prev) =>
+              prev.map((workshop) =>
+                workshop._id === selectedWorkshopId ? { ...workshop, ...updatedData } : workshop
+              )
+            );
+            setEditModal(false);
+          }}
+        />
+      )
+    }
     </Container>
   )
 }

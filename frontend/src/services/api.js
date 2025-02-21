@@ -12,6 +12,16 @@ export const getEvents = async () => {
   }
 };
 
+export const getSpecificEvent=async(id)=>{
+  try{
+    console.log(id)
+    const response=await axios.get(`${BASE_URL}/events/${id}`);
+    return response.data;
+  }catch(e){
+    console.log(e);
+    throw e;
+  }
+}
 
 
 
