@@ -302,8 +302,6 @@ const Register = () => {
 
         {currentStep === 2 && (
           <FormSection>
-            <FormSectionTitle>Workshop Description</FormSectionTitle>
-            
             <FormSectionTitle>About the Workshop</FormSectionTitle>
             {aboutFields.map((field, index) => (
               <InputGroup key={field.id}>
