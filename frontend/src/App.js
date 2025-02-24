@@ -4,6 +4,7 @@ import Courses from "./pages/CoursesDetails/Courses"
 import Register from "./pages/Register/register"
 import AdminDashboard from "./components/admin/admindashboard"
 import UserCards from "./pages/user/userCards" // ✅ Correct Import
+import NoWorkshopAvailable from "./pages/NoWorkshopAvailable/NoWorkshopAvailable"
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/create-workshop" element={<Register />} />
+        <Route path="/noworkshop" element={<NoWorkshopAvailable/>}/>
       </Routes>
     </Router>
   )
